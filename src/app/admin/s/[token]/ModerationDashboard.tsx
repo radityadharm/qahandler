@@ -8,6 +8,7 @@ import { HiddenBadge, SpotlightBadge, StatusBadge } from "@/components/StatusBad
 import { TimeAgo } from "@/components/TimeAgo";
 import { Toggle } from "@/components/Toggle";
 import { apiFetch, errorMessage } from "@/lib/client/api";
+import { downloadSharePoster } from "@/lib/client/poster";
 import { useInterval } from "@/lib/client/useInterval";
 import type { ModerationFeed } from "@/lib/feed";
 import type { Question, QuestionStatus, Seminar } from "@/lib/types";
@@ -39,8 +40,26 @@ export function ModerationDashboard({
   const [filter, setFilter] = useState<FilterKey>("all");
   const [error, setError] = useState<string | null>(null);
   const [showQr, setShowQr] = useState(false);
+  const [downloadingPoster, setDownloadingPoster] = useState(false);
 
   const { seminar, questions } = feed;
+
+  async function downloadPoster() {
+    setDownloadingPoster(true);
+    try {
+      await downloadSharePoster({
+        title: seminar.title,
+        description: seminar.description,
+        url: participantUrl,
+        fileName: `qr-${seminar.slug}.png`,
+      });
+      setError(null);
+    } catch (posterError) {
+      setError(errorMessage(posterError));
+    } finally {
+      setDownloadingPoster(false);
+    }
+  }
 
   const load = useCallback(async () => {
     try {
@@ -170,15 +189,31 @@ export function ModerationDashboard({
           >
             {showQr ? "Sembunyikan QR" : "Tampilkan QR"}
           </button>
+          <button
+            type="button"
+            onClick={() => void downloadPoster()}
+            disabled={downloadingPoster}
+            className="btn-primary btn-sm"
+          >
+            {downloadingPoster ? "Menyiapkan..." : "Unduh gambar QR + link"}
+          </button>
           <a href={`/api/moderate/${token}/export`} className="btn-secondary btn-sm ml-auto">
             Unduh CSV
           </a>
         </div>
 
         {showQr ? (
-          <div className="mt-4 flex flex-col items-center gap-2 rounded-xl bg-slate-50 p-4">
+          <div className="mt-4 flex flex-col items-center gap-3 rounded-xl bg-slate-50 p-4">
             <QrCode value={participantUrl} size={200} className="rounded-lg bg-white p-2" />
             <p className="hint font-mono">{participantUrl}</p>
+            <button
+              type="button"
+              onClick={() => void downloadPoster()}
+              disabled={downloadingPoster}
+              className="btn-secondary btn-sm"
+            >
+              {downloadingPoster ? "Menyiapkan..." : "Unduh sebagai gambar (siap share WA)"}
+            </button>
           </div>
         ) : null}
 
