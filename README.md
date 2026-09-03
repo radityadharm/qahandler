@@ -53,7 +53,7 @@ Di **Settings → Environment Variables**, tambahkan:
 | --- | --- | --- |
 | `DATABASE_URL` | ya | Connection string Postgres. Terisi otomatis kalau pakai integrasi Neon. |
 | `ADMIN_PASSWORD` | ya | Password untuk membuka `/admin`. |
-| `AUTH_SECRET` | ya | String acak panjang untuk menandatangani cookie sesi admin. Buat dengan `openssl rand -base64 32`. |
+| `AUTH_SECRET` | disarankan | String acak panjang untuk menandatangani cookie sesi admin. Buat dengan `openssl rand -base64 32`. Kalau dikosongkan, `ADMIN_PASSWORD` yang dipakai sebagai kunci tanda tangan — jalan, tapi berarti mengganti password ikut membatalkan semua sesi yang sedang aktif. |
 | `NEXT_PUBLIC_APP_URL` | tidak | Isi kalau memakai domain kustom dan ingin link yang dibagikan selalu memakai domain itu. Kalau kosong, alamatnya diambil dari host permintaan. |
 
 ### 4. Deploy
