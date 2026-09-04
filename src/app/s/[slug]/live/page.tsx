@@ -21,5 +21,11 @@ export default async function LivePage({ params }: PageProps<"/s/[slug]/live">) 
 
   const [feed, baseUrl] = await Promise.all([buildPublicFeed(seminar), getBaseUrl()]);
 
-  return <LiveView initialFeed={feed} joinUrl={`${baseUrl}/s/${seminar.slug}`} />;
+  return (
+    <LiveView
+      initialFeed={feed}
+      joinUrl={`${baseUrl}/s/${seminar.slug}`}
+      materialsUrl={`${baseUrl}/m/${seminar.slug}`}
+    />
+  );
 }

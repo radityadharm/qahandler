@@ -12,9 +12,11 @@ const QUEUE_LIMIT = 5;
 export function LiveView({
   initialFeed,
   joinUrl,
+  materialsUrl,
 }: {
   initialFeed: PublicFeed;
   joinUrl: string;
+  materialsUrl: string;
 }) {
   const slug = initialFeed.seminar.slug;
 
@@ -55,14 +57,22 @@ export function LiveView({
           ) : null}
         </div>
 
-        <div className="flex shrink-0 items-center gap-6">
-          <div className="hidden text-right sm:block">
-            <p className="text-xs tracking-wide text-slate-400 uppercase">Kirim pertanyaan di</p>
-            <p className="max-w-xs truncate font-mono text-sm text-indigo-300 lg:text-base">
-              {joinUrl.replace(/^https?:\/\//, "")}
+        <div className="flex shrink-0 items-start gap-5">
+          <div className="flex flex-col items-center gap-1.5">
+            <QrCode value={joinUrl} size={96} className="rounded-lg bg-white p-1" />
+            <p className="text-xs font-semibold tracking-wide text-slate-300 uppercase">
+              Kirim pertanyaan
             </p>
           </div>
-          <QrCode value={joinUrl} size={96} className="rounded-lg bg-white p-1" />
+
+          {seminar.hasMaterials ? (
+            <div className="flex flex-col items-center gap-1.5">
+              <QrCode value={materialsUrl} size={96} className="rounded-lg bg-white p-1" />
+              <p className="text-xs font-semibold tracking-wide text-emerald-300 uppercase">
+                Materi seminar
+              </p>
+            </div>
+          ) : null}
         </div>
       </header>
 
@@ -74,7 +84,7 @@ export function LiveView({
             <p className="text-sm font-semibold tracking-[0.2em] text-indigo-400 uppercase">
               Sedang dibahas
             </p>
-            <p className="mt-8 text-3xl leading-snug font-semibold text-balance whitespace-pre-wrap sm:text-4xl lg:text-6xl">
+            <p className="mt-8 text-3xl leading-snug font-semibold text-balance whitespace-pre-wrap break-words sm:text-4xl lg:text-6xl">
               {spotlight.body}
             </p>
             <p className="mt-8 text-lg text-slate-400 lg:text-2xl">
@@ -93,7 +103,7 @@ export function LiveView({
                     {index + 1}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="text-xl leading-snug whitespace-pre-wrap lg:text-3xl">
+                    <p className="text-xl leading-snug whitespace-pre-wrap break-words lg:text-3xl">
                       {question.body}
                     </p>
                     <p className="mt-1.5 text-sm text-slate-400 lg:text-base">
