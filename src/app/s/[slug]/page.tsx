@@ -8,13 +8,13 @@ import { getSeminarBySlug } from "@/lib/seminars";
 import { ParticipantView } from "./ParticipantView";
 
 export async function generateMetadata({ params }: PageProps<"/s/[slug]">): Promise<Metadata> {
-  if (!isDatabaseConfigured()) return { title: "Q&A Seminar" };
+  if (!isDatabaseConfigured()) return { title: "QA Handler" };
 
   const { slug } = await params;
   const seminar = await getSeminarBySlug(slug).catch(() => null);
 
   return {
-    title: seminar ? `${seminar.title} · Q&A` : "Seminar tidak ditemukan",
+    title: seminar ? `${seminar.title} · QA Handler` : "Seminar tidak ditemukan",
     description: seminar?.description || "Kirim pertanyaanmu untuk sesi tanya jawab.",
   };
 }

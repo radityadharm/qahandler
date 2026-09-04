@@ -8,7 +8,7 @@ import { getSeminarBySlug } from "@/lib/seminars";
 import { LiveView } from "./LiveView";
 
 export const metadata: Metadata = {
-  title: "Layar presentasi · Q&A Seminar",
+  title: "Layar presentasi · QA Handler",
   robots: { index: false, follow: false },
 };
 

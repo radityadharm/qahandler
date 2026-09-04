@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Q&A Seminar",
-  description: "Kumpulkan dan kelola pertanyaan peserta seminar secara langsung.",
+  title: "QA Handler",
+  description: "QA Handler — kumpulkan dan kelola pertanyaan peserta seminar secara langsung.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

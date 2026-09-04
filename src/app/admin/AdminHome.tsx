@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { CopyButton } from "@/components/CopyButton";
+import { Logo } from "@/components/Logo";
 import { Toggle } from "@/components/Toggle";
 import { apiFetch, errorMessage } from "@/lib/client/api";
 import { formatDate } from "@/lib/client/format";
@@ -27,10 +28,7 @@ export function AdminHome({
   return (
     <main className="mx-auto w-full max-w-4xl flex-1 px-4 pt-6 pb-16">
       <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900">Dashboard admin</h1>
-          <p className="hint">Kelola seminar dan link tanya jawabnya.</p>
-        </div>
+        <Logo markClassName="h-10 w-10" subtitle="Dashboard admin" />
         <button type="button" onClick={() => void logout()} className="btn-secondary btn-sm">
           Keluar
         </button>

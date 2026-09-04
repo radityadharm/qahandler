@@ -8,7 +8,7 @@ import { AdminHome } from "./AdminHome";
 import { LoginForm } from "./LoginForm";
 
 export const metadata: Metadata = {
-  title: "Dashboard admin · Q&A Seminar",
+  title: "Dashboard admin · QA Handler",
   robots: { index: false, follow: false },
 };
 

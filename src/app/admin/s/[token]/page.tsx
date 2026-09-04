@@ -8,7 +8,7 @@ import { getSeminarByAdminToken } from "@/lib/seminars";
 import { ModerationDashboard } from "./ModerationDashboard";
 
 export const metadata: Metadata = {
-  title: "Moderasi · Q&A Seminar",
+  title: "Moderasi · QA Handler",
   robots: { index: false, follow: false },
 };
 
