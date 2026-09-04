@@ -24,6 +24,13 @@ Panitia menekan "Sorot di layar" pada satu pertanyaan, lalu pertanyaan itu tampi
 layar. Kalau tidak ada yang disorot, layar menampilkan antrean pertanyaan terpopuler.
 Kode QR menuju halaman peserta selalu tampil di pojok, jadi penonton bisa langsung ikut.
 
+**Link materi** — panitia menautkan materi (slide/Drive/PDF) ke seminar. Peserta membuka
+link pendek dari app (`/m/<kode>`) yang otomatis diteruskan ke materi itu, jadi tautannya
+bisa diganti kapan saja tanpa mengubah link atau QR yang sudah tersebar.
+
+**Gambar QR siap-share** — link peserta maupun link materi bisa diunduh sebagai gambar
+persegi 1080×1080 (berisi judul, QR, dan alamat) yang enak dibagikan ke grup WhatsApp.
+
 ## Cara deploy ke Vercel
 
 ### 1. Siapkan database
@@ -42,6 +49,9 @@ editor Neon/Supabase, atau dari terminal:
 ```bash
 psql "$DATABASE_URL" -f db/schema.sql
 ```
+
+> Sudah pernah deploy versi lama? Jalankan `db/schema.sql` sekali lagi — skripnya idempoten
+> dan otomatis menambahkan kolom baru (mis. `materials_url` untuk fitur link materi).
 
 Skripnya aman dijalankan berulang kali.
 

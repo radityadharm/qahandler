@@ -16,11 +16,18 @@ export type Seminar = {
   allowUpvotes: boolean;
   moderationRequired: boolean;
   spotlightQuestionId: string | null;
+  /** Link materi (slide/dokumen) tujuan redirect /m/<slug>. Null kalau belum diisi. */
+  materialsUrl: string | null;
   createdAt: string;
 };
 
-/** Bentuk seminar yang aman dikirim ke peserta — tanpa admin_token. */
-export type PublicSeminar = Omit<Seminar, "adminToken">;
+/**
+ * Bentuk seminar yang aman dikirim ke peserta: tanpa admin_token, dan URL materi
+ * mentah diganti penanda `hasMaterials` (peserta cukup lewat redirect /m/<slug>).
+ */
+export type PublicSeminar = Omit<Seminar, "adminToken" | "materialsUrl"> & {
+  hasMaterials: boolean;
+};
 
 export type Question = {
   id: string;
@@ -45,8 +52,8 @@ export type SeminarStats = {
   hidden: number;
 };
 
-export type SeminarSummary = PublicSeminar & {
-  adminToken: string;
+/** Ringkasan untuk dashboard admin (terautentikasi), jadi boleh bawa data penuh. */
+export type SeminarSummary = Seminar & {
   stats: SeminarStats;
 };
 
@@ -64,14 +71,15 @@ export function mapSeminar(row: Row): Seminar {
     allowUpvotes: Boolean(row.allow_upvotes),
     moderationRequired: Boolean(row.moderation_required),
     spotlightQuestionId: row.spotlight_question_id ? String(row.spotlight_question_id) : null,
+    materialsUrl: row.materials_url ? String(row.materials_url) : null,
     createdAt: new Date(row.created_at as string).toISOString(),
   };
 }
 
 export function toPublicSeminar(seminar: Seminar): PublicSeminar {
-  const { adminToken: _adminToken, ...rest } = seminar;
+  const { adminToken: _adminToken, materialsUrl, ...rest } = seminar;
   void _adminToken;
-  return rest;
+  return { ...rest, hasMaterials: Boolean(materialsUrl) };
 }
 
 export function mapQuestion(row: Row): Question {

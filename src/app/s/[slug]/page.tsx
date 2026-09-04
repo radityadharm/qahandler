@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { SetupNotice } from "@/components/SetupNotice";
+import { getBaseUrl } from "@/lib/base-url";
 import { isDatabaseConfigured } from "@/lib/db";
 import { buildPublicFeed } from "@/lib/feed";
 import { getSeminarBySlug } from "@/lib/seminars";
@@ -25,5 +26,9 @@ export default async function SeminarPage({ params }: PageProps<"/s/[slug]">) {
   const seminar = await getSeminarBySlug(slug);
   if (!seminar) notFound();
 
-  return <ParticipantView initialFeed={await buildPublicFeed(seminar)} />;
+  const [feed, baseUrl] = await Promise.all([buildPublicFeed(seminar), getBaseUrl()]);
+
+  return (
+    <ParticipantView initialFeed={feed} materialsUrl={`${baseUrl}/m/${seminar.slug}`} />
+  );
 }

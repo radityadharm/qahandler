@@ -14,21 +14,29 @@ import {
   useVotedQuestionIds,
 } from "@/lib/client/session";
 import { useInterval } from "@/lib/client/useInterval";
+import { QrCode } from "@/components/QrCode";
 import type { PublicFeed } from "@/lib/feed";
 import type { PublicQuestion } from "@/lib/types";
 
 const POLL_INTERVAL_MS = 5000;
-const MAX_BODY_LENGTH = 500;
+const MAX_BODY_LENGTH = 2000;
 const MAX_NAME_LENGTH = 60;
 
 type SortMode = "recent" | "top";
 
-export function ParticipantView({ initialFeed }: { initialFeed: PublicFeed }) {
+export function ParticipantView({
+  initialFeed,
+  materialsUrl,
+}: {
+  initialFeed: PublicFeed;
+  materialsUrl: string;
+}) {
   const slug = initialFeed.seminar.slug;
 
   const [feed, setFeed] = useState(initialFeed);
   const [sort, setSort] = useState<SortMode>("top");
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [showMaterialsQr, setShowMaterialsQr] = useState(false);
 
   const [typedName, setTypedName] = useState<string | null>(null);
   const [body, setBody] = useState("");
@@ -166,6 +174,36 @@ export function ParticipantView({ initialFeed }: { initialFeed: PublicFeed }) {
           <p className="mt-2 text-xs text-indigo-700">
             {spotlight.authorName ? `oleh ${spotlight.authorName}` : "oleh peserta anonim"}
           </p>
+        </section>
+      ) : null}
+
+      {seminar.hasMaterials ? (
+        <section className="card mt-4 p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="min-w-0">
+              <h2 className="text-base font-semibold text-slate-900">Materi seminar</h2>
+              <p className="hint mt-0.5">Slide/dokumen dari pembicara.</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <a href={materialsUrl} target="_blank" rel="noreferrer" className="btn-primary btn-sm">
+                Buka materi
+              </a>
+              <button
+                type="button"
+                onClick={() => setShowMaterialsQr((value) => !value)}
+                className="btn-secondary btn-sm"
+              >
+                {showMaterialsQr ? "Tutup QR" : "QR"}
+              </button>
+            </div>
+          </div>
+
+          {showMaterialsQr ? (
+            <div className="mt-4 flex flex-col items-center gap-2 rounded-xl bg-slate-50 p-4">
+              <QrCode value={materialsUrl} size={168} className="rounded-lg bg-white p-2" />
+              <p className="hint">Scan untuk buka materi di perangkat lain.</p>
+            </div>
+          ) : null}
         </section>
       ) : null}
 

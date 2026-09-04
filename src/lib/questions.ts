@@ -9,7 +9,7 @@ import {
   type QuestionStatus,
 } from "@/lib/types";
 
-export const MAX_BODY_LENGTH = 500;
+export const MAX_BODY_LENGTH = 2000;
 export const MAX_NAME_LENGTH = 60;
 
 /** Berapa pertanyaan boleh dikirim satu orang dalam satu menit. */

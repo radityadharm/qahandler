@@ -9,6 +9,7 @@ import {
 } from "@/lib/api";
 import { isAdminAuthenticated } from "@/lib/auth";
 import { createSeminar, listSeminarSummaries } from "@/lib/seminars";
+import { normalizeHttpUrl } from "@/lib/url";
 
 export async function GET() {
   try {
@@ -28,6 +29,14 @@ export async function POST(request: Request) {
     if (!title) return badRequest("Judul seminar wajib diisi.");
     if (title.length > 120) return badRequest("Judul seminar maksimal 120 karakter.");
 
+    const rawMaterials = asString(body.materialsUrl).trim();
+    let materialsUrl: string | null = null;
+    if (rawMaterials) {
+      const normalized = normalizeHttpUrl(rawMaterials);
+      if (!normalized) return badRequest("Link materi harus berupa URL yang valid (http/https).");
+      materialsUrl = normalized;
+    }
+
     const seminar = await createSeminar({
       title,
       description: asString(body.description).trim().slice(0, 500),
@@ -35,6 +44,7 @@ export async function POST(request: Request) {
       showQuestionsToParticipants: asOptionalBoolean(body.showQuestionsToParticipants),
       allowUpvotes: asOptionalBoolean(body.allowUpvotes),
       moderationRequired: asOptionalBoolean(body.moderationRequired),
+      materialsUrl,
     });
 
     return jsonOk({ seminar }, { status: 201 });

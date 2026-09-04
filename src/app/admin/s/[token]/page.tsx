@@ -26,6 +26,7 @@ export default async function ModerationPage({ params }: PageProps<"/admin/s/[to
       token={token}
       initialFeed={feed}
       participantUrl={`${baseUrl}/s/${seminar.slug}`}
+      materialsShareUrl={`${baseUrl}/m/${seminar.slug}`}
     />
   );
 }

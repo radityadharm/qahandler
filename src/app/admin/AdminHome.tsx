@@ -69,6 +69,7 @@ function CreateSeminarForm({ onCreated }: { onCreated: () => void }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [customSlug, setCustomSlug] = useState("");
+  const [materialsUrl, setMaterialsUrl] = useState("");
   const [showQuestions, setShowQuestions] = useState(true);
   const [allowUpvotes, setAllowUpvotes] = useState(true);
   const [moderationRequired, setModerationRequired] = useState(false);
@@ -93,6 +94,7 @@ function CreateSeminarForm({ onCreated }: { onCreated: () => void }) {
           title: title.trim(),
           description: description.trim(),
           slug: customSlug.trim(),
+          materialsUrl: materialsUrl.trim(),
           showQuestionsToParticipants: showQuestions,
           allowUpvotes,
           moderationRequired,
@@ -101,6 +103,7 @@ function CreateSeminarForm({ onCreated }: { onCreated: () => void }) {
       setTitle("");
       setDescription("");
       setCustomSlug("");
+      setMaterialsUrl("");
       onCreated();
     } catch (createError) {
       setError(errorMessage(createError));
@@ -157,6 +160,22 @@ function CreateSeminarForm({ onCreated }: { onCreated: () => void }) {
             onChange={(event) => setDescription(event.target.value)}
             placeholder="Sesi tanya jawab bersama Dr. Ani, 12 Maret 2026"
             className="input"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="materials" className="label">
+            Link materi <span className="font-normal text-slate-400">(opsional)</span>
+          </label>
+          <input
+            id="materials"
+            value={materialsUrl}
+            onChange={(event) => setMaterialsUrl(event.target.value)}
+            placeholder="https://drive.google.com/... (bisa diisi/diganti nanti)"
+            className="input"
+            autoCapitalize="none"
+            spellCheck={false}
+            inputMode="url"
           />
         </div>
 

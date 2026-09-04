@@ -7,8 +7,12 @@ export type SharePosterInput = {
   title: string;
   /** Deskripsi singkat opsional di bawah judul. */
   description?: string;
-  /** URL peserta lengkap (dengan protokol) — dipakai untuk QR dan teks link. */
+  /** URL lengkap (dengan protokol) — dipakai untuk QR dan teks link. */
   url: string;
+  /** Label kecil di atas judul. Default: "SESI TANYA JAWAB". */
+  kicker?: string;
+  /** Label di atas alamat link. Default: "Scan QR atau buka link:". */
+  linkLabel?: string;
   /** Nama file unduhan, mis. "qr-seminar-ai-2026.png". */
   fileName?: string;
 };
@@ -56,6 +60,8 @@ export async function buildSharePosterCanvas(
   ctx.textBaseline = "top";
 
   // --- Ukur tiap blok dulu supaya seluruh isi bisa ditata rata tengah vertikal.
+  const kicker = (input.kicker ?? "SESI TANYA JAWAB").toUpperCase();
+  const linkLabel = input.linkLabel ?? "Scan QR atau buka link:";
   const kickerHeight = 28;
   const gapAfterKicker = 18;
 
@@ -102,7 +108,7 @@ export async function buildSharePosterCanvas(
   ctx.fillStyle = INDIGO;
   ctx.font = `700 24px ${SANS}`;
   ctx.letterSpacing = "4px";
-  ctx.fillText("SESI TANYA JAWAB", centerX, y);
+  ctx.fillText(kicker, centerX, y);
   ctx.letterSpacing = "0px";
   y += kickerHeight + gapAfterKicker;
 
@@ -140,7 +146,7 @@ export async function buildSharePosterCanvas(
   // --- Label + link
   ctx.fillStyle = SLATE;
   ctx.font = `500 26px ${SANS}`;
-  ctx.fillText("Scan QR atau buka link:", centerX, y);
+  ctx.fillText(linkLabel, centerX, y);
   y += labelHeight + gapAfterLabel;
 
   ctx.fillStyle = INDIGO;

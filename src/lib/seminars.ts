@@ -24,6 +24,7 @@ export type CreateSeminarInput = {
   showQuestionsToParticipants?: boolean;
   allowUpvotes?: boolean;
   moderationRequired?: boolean;
+  materialsUrl?: string | null;
 };
 
 export async function createSeminar(input: CreateSeminarInput): Promise<Seminar> {
@@ -37,7 +38,7 @@ export async function createSeminar(input: CreateSeminarInput): Promise<Seminar>
     const rows = await sql`
       insert into seminars (
         slug, title, description, admin_token,
-        show_questions_to_participants, allow_upvotes, moderation_required
+        show_questions_to_participants, allow_upvotes, moderation_required, materials_url
       )
       values (
         ${slug},
@@ -46,7 +47,8 @@ export async function createSeminar(input: CreateSeminarInput): Promise<Seminar>
         ${adminToken},
         ${input.showQuestionsToParticipants ?? true},
         ${input.allowUpvotes ?? true},
-        ${input.moderationRequired ?? false}
+        ${input.moderationRequired ?? false},
+        ${input.materialsUrl ?? null}
       )
       on conflict (slug) do nothing
       returning *
@@ -66,6 +68,8 @@ export type UpdateSeminarInput = {
   moderationRequired?: boolean;
   /** `null` mematikan sorotan di layar presentasi. */
   spotlightQuestionId?: string | null;
+  /** Absen = tidak diubah, `null` = kosongkan, string = pasang link materi. */
+  materialsUrl?: string | null;
 };
 
 export async function updateSeminar(
@@ -74,6 +78,7 @@ export async function updateSeminar(
 ): Promise<Seminar | null> {
   const sql = getSql();
   const clearSpotlight = patch.spotlightQuestionId === null;
+  const setMaterials = patch.materialsUrl !== undefined;
 
   const rows = await sql`
     update seminars set
@@ -88,6 +93,10 @@ export async function updateSeminar(
       spotlight_question_id = case
         when ${clearSpotlight}::boolean then null
         else coalesce(${patch.spotlightQuestionId ?? null}::uuid, spotlight_question_id)
+      end,
+      materials_url = case
+        when ${setMaterials}::boolean then ${patch.materialsUrl ?? null}::text
+        else materials_url
       end
     where id = ${id}
     returning *

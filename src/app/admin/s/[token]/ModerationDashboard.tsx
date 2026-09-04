@@ -12,6 +12,7 @@ import { downloadSharePoster } from "@/lib/client/poster";
 import { useInterval } from "@/lib/client/useInterval";
 import type { ModerationFeed } from "@/lib/feed";
 import type { Question, QuestionStatus, Seminar } from "@/lib/types";
+import { normalizeHttpUrl } from "@/lib/url";
 
 const POLL_INTERVAL_MS = 4000;
 
@@ -30,34 +31,47 @@ export function ModerationDashboard({
   token,
   initialFeed,
   participantUrl,
+  materialsShareUrl,
 }: {
   token: string;
   initialFeed: ModerationFeed;
   participantUrl: string;
+  materialsShareUrl: string;
 }) {
   const [feed, setFeed] = useState(initialFeed);
   const [sort, setSort] = useState<SortMode>("recent");
   const [filter, setFilter] = useState<FilterKey>("all");
   const [error, setError] = useState<string | null>(null);
   const [showQr, setShowQr] = useState(false);
-  const [downloadingPoster, setDownloadingPoster] = useState(false);
+  const [downloadingPoster, setDownloadingPoster] = useState<"qa" | "materials" | null>(null);
 
   const { seminar, questions } = feed;
 
-  async function downloadPoster() {
-    setDownloadingPoster(true);
+  async function downloadPoster(kind: "qa" | "materials") {
+    setDownloadingPoster(kind);
     try {
-      await downloadSharePoster({
-        title: seminar.title,
-        description: seminar.description,
-        url: participantUrl,
-        fileName: `qr-${seminar.slug}.png`,
-      });
+      await downloadSharePoster(
+        kind === "materials"
+          ? {
+              title: seminar.title,
+              description: seminar.description,
+              url: materialsShareUrl,
+              kicker: "MATERI SEMINAR",
+              linkLabel: "Scan QR atau buka materi:",
+              fileName: `materi-${seminar.slug}.png`,
+            }
+          : {
+              title: seminar.title,
+              description: seminar.description,
+              url: participantUrl,
+              fileName: `qr-${seminar.slug}.png`,
+            },
+      );
       setError(null);
     } catch (posterError) {
       setError(errorMessage(posterError));
     } finally {
-      setDownloadingPoster(false);
+      setDownloadingPoster(null);
     }
   }
 
@@ -191,11 +205,11 @@ export function ModerationDashboard({
           </button>
           <button
             type="button"
-            onClick={() => void downloadPoster()}
-            disabled={downloadingPoster}
+            onClick={() => void downloadPoster("qa")}
+            disabled={downloadingPoster !== null}
             className="btn-primary btn-sm"
           >
-            {downloadingPoster ? "Menyiapkan..." : "Unduh gambar QR + link"}
+            {downloadingPoster === "qa" ? "Menyiapkan..." : "Unduh gambar QR + link"}
           </button>
           <a href={`/api/moderate/${token}/export`} className="btn-secondary btn-sm ml-auto">
             Unduh CSV
@@ -208,14 +222,22 @@ export function ModerationDashboard({
             <p className="hint font-mono">{participantUrl}</p>
             <button
               type="button"
-              onClick={() => void downloadPoster()}
-              disabled={downloadingPoster}
+              onClick={() => void downloadPoster("qa")}
+              disabled={downloadingPoster !== null}
               className="btn-secondary btn-sm"
             >
-              {downloadingPoster ? "Menyiapkan..." : "Unduh sebagai gambar (siap share WA)"}
+              {downloadingPoster === "qa" ? "Menyiapkan..." : "Unduh sebagai gambar (siap share WA)"}
             </button>
           </div>
         ) : null}
+
+        <MaterialsPanel
+          materialsUrl={seminar.materialsUrl}
+          shareUrl={materialsShareUrl}
+          downloading={downloadingPoster === "materials"}
+          onSave={(url) => patchSeminar({ materialsUrl: url })}
+          onDownloadPoster={() => void downloadPoster("materials")}
+        />
 
         <div className="mt-5 grid gap-3 border-t border-slate-200 pt-5 sm:grid-cols-2">
           <Toggle
@@ -408,5 +430,144 @@ function QuestionRow({
         </button>
       </div>
     </li>
+  );
+}
+
+function MaterialsPanel({
+  materialsUrl,
+  shareUrl,
+  downloading,
+  onSave,
+  onDownloadPoster,
+}: {
+  materialsUrl: string | null;
+  shareUrl: string;
+  downloading: boolean;
+  onSave: (url: string | null) => Promise<void>;
+  onDownloadPoster: () => void;
+}) {
+  const [input, setInput] = useState(materialsUrl ?? "");
+  const [saving, setSaving] = useState(false);
+  const [localError, setLocalError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
+  const [showQr, setShowQr] = useState(false);
+
+  const dirty = input.trim() !== (materialsUrl ?? "");
+
+  async function save() {
+    const trimmed = input.trim();
+    const normalized = trimmed ? normalizeHttpUrl(trimmed) : null;
+    if (trimmed && !normalized) {
+      setLocalError("Link materi harus berupa URL yang valid, mis. https://drive.google.com/...");
+      return;
+    }
+
+    setSaving(true);
+    setLocalError(null);
+    try {
+      await onSave(normalized);
+      if (normalized) setInput(normalized);
+      setSaved(true);
+      window.setTimeout(() => setSaved(false), 2000);
+    } catch {
+      // Pesan error ditampilkan lewat banner di dashboard induk.
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function clear() {
+    setInput("");
+    setLocalError(null);
+    setSaving(true);
+    try {
+      await onSave(null);
+    } catch {
+      // idem
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="mt-5 border-t border-slate-200 pt-5">
+      <h2 className="text-sm font-semibold text-slate-800">Materi seminar</h2>
+      <p className="hint mt-0.5">
+        Peserta membuka link pendek dari app ini yang otomatis diteruskan ke materimu. Link dan
+        QR-nya tetap sama walau kamu ganti tautan materinya.
+      </p>
+
+      <div className="mt-3 flex flex-wrap items-end gap-2">
+        <div className="min-w-[240px] flex-1">
+          <label htmlFor="materials-url" className="label">
+            Tautan materi (slide, Drive, PDF, dll.)
+          </label>
+          <input
+            id="materials-url"
+            value={input}
+            onChange={(event) => setInput(event.target.value)}
+            placeholder="https://drive.google.com/..."
+            className="input"
+            autoCapitalize="none"
+            spellCheck={false}
+            inputMode="url"
+          />
+        </div>
+        <button
+          type="button"
+          onClick={() => void save()}
+          disabled={saving || !dirty}
+          className="btn-primary btn-sm"
+        >
+          {saving ? "Menyimpan..." : saved ? "Tersimpan!" : "Simpan"}
+        </button>
+        {materialsUrl ? (
+          <button type="button" onClick={() => void clear()} disabled={saving} className="btn-danger btn-sm">
+            Hapus
+          </button>
+        ) : null}
+      </div>
+
+      {localError ? <p className="mt-2 text-sm text-rose-600">{localError}</p> : null}
+
+      {materialsUrl ? (
+        <div className="mt-4 rounded-xl bg-slate-50 p-4">
+          <p className="hint">Link peserta untuk materi (dari app, aman dibagikan):</p>
+          <div className="mt-1 flex flex-wrap items-center gap-2">
+            <a
+              href={shareUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="font-mono text-sm break-all text-indigo-600 hover:text-indigo-500"
+            >
+              {shareUrl.replace(/^https?:\/\//, "")}
+            </a>
+            <CopyButton value={shareUrl} label="Salin link materi" />
+            <button
+              type="button"
+              onClick={() => setShowQr((value) => !value)}
+              className="btn-secondary btn-sm"
+            >
+              {showQr ? "Sembunyikan QR" : "Tampilkan QR"}
+            </button>
+            <button
+              type="button"
+              onClick={onDownloadPoster}
+              disabled={downloading}
+              className="btn-primary btn-sm"
+            >
+              {downloading ? "Menyiapkan..." : "Unduh gambar QR materi"}
+            </button>
+          </div>
+
+          {showQr ? (
+            <div className="mt-4 flex flex-col items-center gap-2">
+              <QrCode value={shareUrl} size={180} className="rounded-lg bg-white p-2" />
+              <p className="hint break-all">Diteruskan ke: {materialsUrl}</p>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
   );
 }

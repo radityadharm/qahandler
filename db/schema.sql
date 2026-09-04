@@ -16,8 +16,12 @@ create table if not exists seminars (
   allow_upvotes                   boolean not null default true,
   moderation_required             boolean not null default false,
   spotlight_question_id           uuid,
+  materials_url                   text,
   created_at                      timestamptz not null default now()
 );
+
+-- Migrasi untuk database yang tabelnya sudah terlanjur dibuat sebelum kolom ini ada.
+alter table seminars add column if not exists materials_url text;
 
 create table if not exists questions (
   id           uuid primary key default gen_random_uuid(),

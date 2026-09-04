@@ -9,6 +9,7 @@ import {
 } from "@/lib/api";
 import { buildModerationFeed } from "@/lib/feed";
 import { getSeminarByAdminToken, updateSeminar } from "@/lib/seminars";
+import { normalizeHttpUrl } from "@/lib/url";
 
 export async function GET(_request: Request, context: RouteContext<"/api/moderate/[token]">) {
   try {
@@ -42,6 +43,19 @@ export async function PATCH(request: Request, context: RouteContext<"/api/modera
       spotlightQuestionId = typeof raw === "string" && raw ? raw : null;
     }
 
+    // Absen = biarkan apa adanya, string kosong = kosongkan, selain itu wajib URL valid.
+    let materialsUrl: string | null | undefined;
+    if ("materialsUrl" in body) {
+      const raw = asString(body.materialsUrl).trim();
+      if (!raw) {
+        materialsUrl = null;
+      } else {
+        const normalized = normalizeHttpUrl(raw);
+        if (!normalized) return badRequest("Link materi harus berupa URL yang valid (http/https).");
+        materialsUrl = normalized;
+      }
+    }
+
     const updated = await updateSeminar(seminar.id, {
       title: title?.slice(0, 120),
       description:
@@ -51,6 +65,7 @@ export async function PATCH(request: Request, context: RouteContext<"/api/modera
       allowUpvotes: asOptionalBoolean(body.allowUpvotes),
       moderationRequired: asOptionalBoolean(body.moderationRequired),
       spotlightQuestionId,
+      materialsUrl,
     });
 
     if (!updated) return notFound("Seminar tidak ditemukan.");
